@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Muy Excited Audience</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --neg: #e34948; --wash: rgba(42,120,214,0.10);
+  --up: #006300; --down: #b42828; --ref: #52514e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --neg: #e66767; --wash: rgba(57,135,229,0.14);
+    --up: #0ca30c; --down: #e66767; --ref: #c3c2b7;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --neg: #e66767; --wash: rgba(57,135,229,0.14);
+  --up: #0ca30c; --down: #e66767; --ref: #c3c2b7;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1120px; margin: 0 auto; padding: 28px 16px 48px; }
+header h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+header p { margin: 0; color: var(--ink-2); }
+h2 { font-size: 18px; margin: 40px 0 4px; }
+.sub { color: var(--ink-2); margin: 0 0 14px; font-size: 14px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 24px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.tile .label { color: var(--ink-2); font-size: 13px; }
+.tile .value { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; margin: 2px 0 4px; }
+.tile .value.small { font-size: 18px; line-height: 1.3; margin: 6px 0; }
+.delta { font-size: 13px; color: var(--ink-2); }
+.delta b { font-weight: 600; }
+.delta .up { color: var(--up); } .delta .down { color: var(--down); }
+.tile svg { display: block; margin-top: 10px; }
+.note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; }
+@media (max-width: 820px) { .grid2 { grid-template-columns: 1fr; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); margin-bottom: 8px; align-items: center; }
+.key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.chart { width: 100%; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart text { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.chart text.ink { fill: var(--ink-2); }
+.chart text.lbl { fill: var(--ink); font-weight: 600; }
+.toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-left: auto; }
+.toggle button { font: inherit; font-size: 13px; background: none; color: var(--ink-2); border: 0; padding: 4px 10px; cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: var(--wash); color: var(--ink); font-weight: 600; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-weight: 600; color: var(--ink-2); font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--axis); }
+td { padding: 8px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td a { color: var(--ink); text-decoration: none; }
+td a:hover { text-decoration: underline; }
+td .meta { color: var(--muted); font-size: 12px; }
+.bar { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.bar span.track { position: relative; flex: 1; height: 10px; }
+.bar span.fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--s1); border-radius: 0 4px 4px 0; }
+.bar span.ref { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ref); }
+.bar b { font-weight: 600; min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+.crow { padding: 10px 0; border-bottom: 1px solid var(--grid); }
+.crow:last-child { border-bottom: 0; }
+.crow .head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.crow .head a { color: var(--ink); text-decoration: none; font-size: 14px; }
+.crow .head a:hover { text-decoration: underline; }
+.crow .head b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.crow .meta { color: var(--muted); font-size: 12px; }
+.track2 { position: relative; margin-top: 6px; }
+.stack { display: flex; height: 12px; gap: 2px; }
+.track2 .ref { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ref); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 2px; }
+.controls .lbl { font-size: 13px; color: var(--ink-2); }
+.more { font: inherit; font-size: 13px; margin-top: 10px; background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--ink); cursor: pointer; }
+.more:hover { background: var(--wash); }
+.search { font: inherit; font-size: 14px; width: 100%; max-width: 420px; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--surface); color: var(--ink); }
+.stack span { height: 100%; }
+.stack span:last-child { border-radius: 0 4px 4px 0; }
+.stack span.proj { background: var(--s1); opacity: 0.3; }
+.pace { font-weight: 600; white-space: nowrap; }
+.pace.ahead { color: var(--up); } .pace.behind { color: var(--down); } .pace.on { color: var(--ink-2); }
+details { margin-top: 10px; font-size: 13px; color: var(--ink-2); }
+details summary { cursor: pointer; }
+details table { margin-top: 8px; font-size: 13px; }
+#tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12); border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.4;
+  opacity: 0; transition: opacity .1s; z-index: 10; max-width: 260px; }
+#tip .t { font-weight: 600; margin-bottom: 2px; }
+#tip .row { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+#tip .row span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+footer { margin-top: 48px; color: var(--ink-2); font-size: 13px; border-top: 1px solid var(--grid); padding-top: 16px; }
+footer p { margin: 0 0 8px; }
+.hit { fill: transparent; cursor: default; }
+.kv { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--ink-2); padding: 3px 0; }
+.kv b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.split { display: flex; height: 10px; gap: 2px; margin: 8px 0 4px; }
+.split span { height: 100%; min-width: 2px; }
+.split span:first-child { border-radius: 4px 0 0 4px; } .split span:last-child { border-radius: 0 4px 4px 0; }
+.tile hr { border: 0; border-top: 1px solid var(--grid); margin: 10px 0 6px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Muy Excited audience</h1>
+    <p id="asof"></p>
+  </header>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section id="socSection" hidden>
+  <h2>Muy Excited on Instagram and Facebook</h2>
+  <p class="sub">Muy Excited posts on Futuro Media's Instagram (@futuromedia) and Facebook Page. Posts count as Muy Excited when the caption mentions the show. Views and engagements are for posts published in the last 30 days, counted up to today.</p>
+  <div class="tiles" id="socTiles" style="margin-top:0"></div>
+  <div class="card" style="margin-top:12px">
+    <div class="legend"><span><i class="key" style="background:var(--s1)"></i>Instagram</span><span><i class="key" style="background:var(--s2)"></i>Facebook</span><span style="margin-left:auto">Views of Muy Excited posts, by month posted</span></div>
+    <div class="chart" id="socChart"></div>
+    <details><summary>View as table</summary><div class="scroll" id="socTable"></div></details>
+  </div>
+  <h2>Top Muy Excited posts, last 6 months</h2>
+  <p class="sub">Ranked by views. Engagements = likes, comments, shares and saves (Facebook: reactions and shares; comments aren't available).</p>
+  <div class="card scroll" id="posts"></div>
+  </section>
+
+  <h2>Podcast downloads by month</h2>
+  <p class="sub">Both Omny feeds (public and unlisted) added together. The trailer came out April 16, 2026; weekly episodes started July 30.</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="legend"><span><i class="key" style="background:var(--s1)"></i>Downloads</span></div>
+      <div class="chart" id="podcastChart"></div>
+      <details><summary>View as table</summary><div class="scroll" id="podcastTable"></div></details>
+    </div>
+    <div class="card">
+      <div class="legend" style="margin-bottom:12px"><span id="appsTitle"></span></div>
+      <div class="chart" id="appsChart"></div>
+    </div>
+  </div>
+
+  <section id="uniqSection" hidden>
+  <h2>Podcast listeners by month</h2>
+  <p class="sub">Estimated unique listeners each month since the show launched, and how many downloads the average listener accounted for. Monthly figures can't be added together: a regular listener is counted in every month.</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="legend" style="margin-bottom:12px"><span>Unique listeners</span></div>
+      <div class="chart" id="uniqChart"></div>
+      <details><summary>View as table</summary><div class="scroll" id="uniqTable"></div></details>
+    </div>
+    <div class="card">
+      <div class="legend" style="margin-bottom:12px"><span>Downloads per listener</span></div>
+      <div class="chart" id="perChart"></div>
+    </div>
+  </div>
+  </section>
+
+  <h2>YouTube</h2>
+  <div class="card"><p class="note" style="margin:0">The Muy Excited YouTube channel (Shorts and full episodes) will be added here once channel access is set up.</p></div>
+
+  <h2>Episodes</h2>
+  <p class="sub">Podcast downloads per episode (both feeds). Compare episodes over the same number of days since publishing. YouTube views will be added once the channel is connected.</p>
+  <div class="card">
+    <div class="legend"><span><i class="key" style="background:var(--s1)"></i><span id="keyPodcast">Podcast downloads</span></span><span id="keyYouTube"><i class="key" style="background:var(--s3)"></i>YouTube full-video views</span><span id="keyPaid"><i class="key" style="background:var(--s2)"></i>YouTube paid views (ads)</span>
+      <span class="toggle" role="group" aria-label="Time since publishing" id="winToggle">
+        <button type="button" aria-pressed="false" data-win="7">First 7 days</button>
+        <button type="button" aria-pressed="false" data-win="30">First 30 days</button>
+        <button type="button" aria-pressed="false" data-win="60">First 60 days</button>
+        <button type="button" aria-pressed="true" data-win="all">All time</button>
+      </span>
+    </div>
+    <div class="controls" id="measureRow" hidden><span class="lbl">Measure</span>
+      <span class="toggle" role="group" aria-label="Measure" id="measureToggle" style="margin-left:0">
+        <button type="button" aria-pressed="true" data-measure="reach">Downloads + YouTube views</button>
+        <button type="button" aria-pressed="false" data-measure="unique">Podcast unique listeners</button>
+      </span>
+    </div>
+    <div class="controls"><span class="lbl">Order</span>
+      <span class="toggle" role="group" aria-label="Order" id="sortToggle" style="margin-left:0">
+        <button type="button" aria-pressed="true" data-sort="reach">Most reached</button>
+        <button type="button" aria-pressed="false" data-sort="recent">Newest first</button>
+      </span>
+    </div>
+    <div class="controls"><span class="lbl">Find</span>
+      <input type="search" class="search" id="epSearch" list="epTitles" placeholder="Search by title, e.g. Shakira" aria-label="Search episodes" autocomplete="off">
+      <datalist id="epTitles"></datalist>
+    </div>
+    <p class="note" id="winNote"></p>
+    <div id="combined"></div>
+    <button type="button" class="more" id="moreBtn" hidden></button>
+  </div>
+
+  <h2>Top episodes</h2>
+  <p class="sub">Score compares each episode's downloads in its first 30 days with the typical (median) episode released within about six weeks. 100 = typical. Episodes get a score once they are 30 days old.</p>
+  <div class="card scroll" id="episodes"></div>
+
+
+  <h2>Which topics do best</h2>
+  <p class="sub">How the typical (median) episode on each topic scores compared with 100, a typical episode overall. Topics with at least 2 scored episodes. Topic tags are a first draft, still to be reviewed by the team, and with this few episodes the differences are a first hint, not a pattern.</p>
+  <div class="card"><div class="chart" id="topicChart"></div></div>
+
+  <footer>
+    <p><b>Sources.</b> Podcast downloads and estimated unique listeners from Omny Studio (both Muy Excited feeds). Instagram and Facebook from Meta's Graph API, for posts on Futuro Media's accounts that mention Muy Excited. Followers are Futuro Media's, shared by all Futuro shows.</p>
+    <p><b>Score</b> uses each episode's downloads in its first 30 days; episodes need 4 comparable episodes to get a score. <b>Projections</b> for newer episodes are based on how earlier Muy Excited episodes built up, so they will get more reliable as the show adds episodes.</p>
+  </footer>
+</main>
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const D = {"updated": "2026-11-16", "youtube": null, "omny_end": "2026-11-15", "podcast": {"value": 4506, "prev": 6693, "last_year": null, "weekly": [10, 5, 3, 4, 4, 3, 11, 8, 17, 26, 306, 2416, 3022, 1065, 1206, 1545, 1259, 1686, 1476, 1404, 1664, 1496, 1099, 1114, 1063, 1021]}, "episodes_30d": 4, "months": [{"month": "2026-04", "downloads": 76, "partial": false}, {"month": "2026-05", "downloads": 136, "partial": false}, {"month": "2026-06", "downloads": 15, "partial": false}, {"month": "2026-07", "downloads": 257, "partial": false}, {"month": "2026-08", "downloads": 7991, "partial": false}, {"month": "2026-09", "downloads": 6535, "partial": false}, {"month": "2026-10", "downloads": 5962, "partial": false}, {"month": "2026-11", "downloads": 2158, "partial": true}], "apps_month": "2026-10", "apps": [{"app": "Apple Podcasts", "downloads": 4773}, {"app": "Spotify", "downloads": 459}, {"app": "Overcast", "downloads": 132}, {"app": "Pocket Casts", "downloads": 99}, {"app": "iHeartRadio", "downloads": 90}, {"app": "All other apps", "downloads": 409}], "uniq_months": [{"month": "2026-07", "listeners": 214, "downloads": 257, "complete": true, "per": 1.2, "start": "2026-07-01", "end": "2026-07-31"}, {"month": "2026-08", "listeners": 5637, "downloads": 7991, "complete": true, "per": 1.42, "start": "2026-08-01", "end": "2026-08-31"}, {"month": "2026-09", "listeners": 4369, "downloads": 6535, "complete": true, "per": 1.5, "start": "2026-09-01", "end": "2026-09-30"}, {"month": "2026-10", "listeners": 3994, "downloads": 5962, "complete": true, "per": 1.49, "start": "2026-10-01", "end": "2026-10-31"}, {"month": "2026-11", "listeners": 1543, "downloads": 2158, "complete": false, "per": 1.4, "start": "2026-11-01", "end": "2026-11-15"}], "uniq_30": {"listeners": 2896, "downloads": 4506, "per": 1.56}, "top_episodes": [{"title": "The Meaning of Ricky Martin’s Evolution", "date": "2026-07-30", "downloads": 4112, "total": 4732, "score": 404, "type": "New", "topic": "Music", "link": ""}, {"title": "The Meaning of Mexican Politeness", "date": "2026-10-07", "downloads": 1687, "total": 1741, "score": 160, "type": "New", "topic": "Latino identity", "link": ""}, {"title": "The Meaning of Selena and Beyoncé in One Song", "date": "2026-09-16", "downloads": 1369, "total": 1474, "score": 130, "type": "New", "topic": "Music", "link": ""}, {"title": "The Meaning of Britney Spears at the VMAs", "date": "2026-09-30", "downloads": 1186, "total": 1248, "score": 113, "type": "New", "topic": "Music", "link": ""}, {"title": "The Meaning of the Magical Chihuahua", "date": "2026-08-06", "downloads": 1118, "total": 1354, "score": 106, "type": "New", "topic": "Film & TV", "link": ""}, {"title": "Love & Basketball: A Love Letter to a Girl’s Dreams", "date": "2026-09-03", "downloads": 1071, "total": 1176, "score": 101, "type": "New", "topic": "Film & TV", "link": ""}, {"title": "The Meaning of Serving C*nt", "date": "2026-09-23", "downloads": 1043, "total": 1101, "score": 99, "type": "New", "topic": "Queer culture", "link": ""}, {"title": "The Meaning of Mariah Carey and Luis Miguel", "date": "2026-08-27", "downloads": 1057, "total": 1186, "score": 97, "type": "New", "topic": "Celebrity romance", "link": ""}, {"title": "The Meaning of Shakira’s Black Hair", "date": "2026-08-13", "downloads": 978, "total": 1190, "score": 92, "type": "New", "topic": "Beauty & fashion", "link": ""}, {"title": "The Meaning of Meryl Streep’s Intuition", "date": "2026-09-09", "downloads": 965, "total": 1054, "score": 90, "type": "New", "topic": "Film & TV", "link": ""}], "topics": [{"topic": "Music", "median": 122, "n": 4}, {"topic": "Film & TV", "median": 96, "n": 4}], "combined": [{"title": "Introducing: Muy Excited with Maria Garcia", "date": "2026-04-16", "link": "", "all": [2157, 0, 0], "7": [64, 0, 0], "30": [704, 0, 0], "60": [757, 0, 0], "u": {"7": 63, "30": 655}}, {"title": "The Meaning of Ricky Martin’s Evolution", "date": "2026-07-30", "link": "", "all": [4732, 0, 0], "7": [410, 0, 0], "30": [4112, 0, 0], "60": [4520, 0, 0], "u": {"7": 391, "30": 3801}}, {"title": "The Meaning of the Magical Chihuahua", "date": "2026-08-06", "link": "", "all": [1354, 0, 0], "7": [781, 0, 0], "30": [1118, 0, 0], "60": [1284, 0, 0], "u": {"7": 744, "30": 1041}}, {"title": "The Meaning of Shakira’s Black Hair", "date": "2026-08-13", "link": "", "all": [1190, 0, 0], "7": [627, 0, 0], "30": [978, 0, 0], "60": [1144, 0, 0], "u": {"7": 600, "30": 919}}, {"title": "The Meaning of Aaliyah’s Baddie Vibe", "date": "2026-08-20", "link": "", "all": [979, 0, 0], "7": [587, 0, 0], "30": [861, 0, 0], "60": [952, 0, 0], "u": {"7": 554, "30": 781}}, {"title": "The Meaning of Mariah Carey and Luis Miguel", "date": "2026-08-27", "link": "", "all": [1186, 0, 0], "7": [779, 0, 0], "30": [1057, 0, 0], "60": [1150, 0, 0], "u": {"7": 760, "30": 999}}, {"title": "Love & Basketball: A Love Letter to a Girl’s Dreams", "date": "2026-09-03", "link": "", "all": [1176, 0, 0], "7": [811, 0, 0], "30": [1071, 0, 0], "60": [1157, 0, 0], "u": {"7": 775, "30": 988}}, {"title": "The Meaning of Meryl Streep’s Intuition", "date": "2026-09-09", "link": "", "all": [1054, 0, 0], "7": [719, 0, 0], "30": [965, 0, 0], "60": [1042, 0, 0], "u": {"7": 699, "30": 921}}, {"title": "The Meaning of Selena and Beyoncé in One Song", "date": "2026-09-16", "link": "", "all": [1474, 0, 0], "7": [1104, 0, 0], "30": [1369, 0, 0], "60": [1472, 0, 0], "u": {"7": 1065, "30": 1297}}, {"title": "The Meaning of Serving C*nt", "date": "2026-09-23", "link": "", "all": [1101, 0, 0], "7": [779, 0, 0], "30": [1043, 0, 0], "p60": {"age": 53, "so_far": 1098, "proj": 1114, "lo": 1107, "hi": 1117, "pace": 96, "label": "On pace"}, "u": {"7": 759, "30": 984}}, {"title": "The Meaning of Britney Spears at the VMAs", "date": "2026-09-30", "link": "", "all": [1248, 0, 0], "7": [939, 0, 0], "30": [1186, 0, 0], "p60": {"age": 46, "so_far": 1245, "proj": 1283, "lo": 1276, "hi": 1304, "pace": 111, "label": "Ahead of pace"}, "u": {"7": 905, "30": 1124}}, {"title": "The Meaning of Mexican Politeness", "date": "2026-10-07", "link": "", "all": [1741, 0, 0], "7": [1223, 0, 0], "30": [1687, 0, 0], "p60": {"age": 39, "so_far": 1739, "proj": 1830, "lo": 1818, "hi": 1897, "pace": 158, "label": "Ahead of pace"}, "u": {"7": 1189, "30": 1595}}, {"title": "What Makes 19th Century England so Hot?", "date": "2026-10-14", "link": "", "all": [912, 0, 0], "7": [738, 0, 0], "30": [905, 0, 0], "p60": {"age": 32, "so_far": 910, "proj": 985, "lo": 975, "hi": 1027, "pace": 85, "label": "Behind pace"}, "u": {"7": 722, "30": 868}}, {"title": "The Meaning of Kate Moss’ Messiness", "date": "2026-10-21", "link": "", "all": [772, 0, 0], "7": [652, 0, 0], "p30": {"age": 25, "so_far": 770, "proj": 793, "lo": 789, "hi": 809, "pace": 74, "label": "Behind pace"}, "p60": {"age": 25, "so_far": 770, "proj": 868, "lo": 852, "hi": 933, "pace": 74, "label": "Behind pace"}, "u": {"7": 635}}, {"title": "The Meaning of Bisexual Vampires", "date": "2026-10-28", "link": "", "all": [743, 0, 0], "7": [656, 0, 0], "p30": {"age": 18, "so_far": 737, "proj": 802, "lo": 785, "hi": 846, "pace": 76, "label": "Behind pace"}, "p60": {"age": 18, "so_far": 737, "proj": 891, "lo": 863, "hi": 972, "pace": 76, "label": "Behind pace"}, "u": {"7": 648}}, {"title": "The Meaning of Arsenio Hall on Late Night", "date": "2026-11-04", "link": "", "all": [744, 0, 0], "7": [691, 0, 0], "p30": {"age": 11, "so_far": 739, "proj": 889, "lo": 854, "hi": 1009, "pace": 84, "label": "Behind pace"}, "p60": {"age": 11, "so_far": 739, "proj": 1027, "lo": 949, "hi": 1181, "pace": 85, "label": "Behind pace"}, "u": {"7": 671}}, {"title": "Is Winona Ryder the Ultimate Cool Girl?", "date": "2026-11-11", "link": "", "all": [567, 0, 0], "p7": {"age": 4, "so_far": 538, "proj": 663, "lo": 630, "hi": 775, "pace": 96, "label": "On pace"}, "p30": {"age": 4, "so_far": 538, "proj": 969, "lo": 870, "hi": 1051, "pace": 89, "label": "Behind pace"}, "p60": {"age": 4, "so_far": 538, "proj": 1110, "lo": 1015, "hi": 1183, "pace": 100, "label": "On pace"}}], "social": {"pulled": "2026-11-16T20:17+00:00", "start": "2026-10-17", "end": "2026-11-16", "platforms": [{"platform": "Instagram", "followers": 20001, "followers_date": "2026-11-16", "posts_30": 15, "views_30": 37380, "engagements_30": 1854, "posts_all": 66, "views_all": 588747}, {"platform": "Facebook", "followers": 4625, "followers_date": "2026-11-16", "posts_30": 14, "views_30": 3559, "engagements_30": 8, "posts_all": 62, "views_all": 16684}], "months": [{"month": "2026-04", "instagram": 9797, "facebook": 0, "partial": false}, {"month": "2026-07", "instagram": 9357, "facebook": 885, "partial": false}, {"month": "2026-08", "instagram": 390045, "facebook": 4091, "partial": false}, {"month": "2026-09", "instagram": 55627, "facebook": 5464, "partial": false}, {"month": "2026-10", "instagram": 101604, "facebook": 3660, "partial": false}, {"month": "2026-11", "instagram": 22317, "facebook": 2584, "partial": true}], "top_posts": [{"platform": "Instagram", "date": "2026-08-05", "type": "reel", "title": "✨This is chihuahua reparations✨", "link": "https://www.instagram.com/reel/DbrFHkVpvDL/", "views": 197613, "likes": 20519, "comments": 484, "shares": 9502, "saves": 2325, "engagements": 32830}, {"platform": "Instagram", "date": "2026-08-15", "type": "reel", "title": "Why do so many women long for Shakira’s jet black hair?", "link": "https://www.instagram.com/reel/DcFBIs6RIlk/", "views": 108368, "likes": 10268, "comments": 332, "shares": 1090, "saves": 1247, "engagements": 12937}, {"platform": "Instagram", "date": "2026-10-08", "type": "reel", "title": "Why are Mexicans so polite?", "link": "https://www.instagram.com/reel/DeQFVZbRyLo/", "views": 32370, "likes": 1984, "comments": 58, "shares": 393, "saves": 680, "engagements": 3115}, {"platform": "Instagram", "date": "2026-10-07", "type": "reel", "title": "About the idea of a Britney Spears biopic starring Sydney Sweeney…", "link": "https://www.instagram.com/reel/DeLCe80xio8/", "views": 31651, "likes": 1861, "comments": 173, "shares": 272, "saves": 190, "engagements": 2496}, {"platform": "Instagram", "date": "2026-08-28", "type": "reel", "title": "Mariah and Luismi: Part 2", "link": "https://www.instagram.com/reel/DcmR7aEpTk2/", "views": 23488, "likes": 1200, "comments": 58, "shares": 163, "saves": 123, "engagements": 1544}, {"platform": "Instagram", "date": "2026-08-27", "type": "reel", "title": "They were glamour, talent, beauty – captured in a duo. They were the darling of American Pop and R&B Mariah Carey and the sun of Mexico, Lui", "link": "https://www.instagram.com/reel/Dcjst3_pxNu/", "views": 21883, "likes": 1574, "comments": 61, "shares": 410, "saves": 190, "engagements": 2235}, {"platform": "Instagram", "date": "2026-10-30", "type": "reel", "title": "Maria dives into the history of vampirism and straight vs gay vampires. ✍️ 🧛 ", "link": "https://www.instagram.com/reel/DfItu--NdEf/", "views": 8517, "likes": 403, "comments": 21, "shares": 92, "saves": 119, "engagements": 635}, {"platform": "Instagram", "date": "2026-08-22", "type": "reel", "title": "Aaliyah changed music forever and became one of the most talented people to walk on this earth 🎤 🌎 ", "link": "https://www.instagram.com/reel/DcXC23xRqrK/", "views": 7945, "likes": 796, "comments": 11, "shares": 35, "saves": 93, "engagements": 935}, {"platform": "Instagram", "date": "2026-09-11", "type": "reel", "title": "One of the greatest actors of our generation made a choice early in her career that highlighted her love, loyalty, and intuition. 🎬❤️", "link": "https://www.instagram.com/reel/DdKjqFzRkO0/", "views": 7584, "likes": 213, "comments": 2, "shares": 13, "saves": 9, "engagements": 237}, {"platform": "Instagram", "date": "2026-10-01", "type": "reel", "title": "During one of the hardest times in Britney Spears’ life, she worked on a record that would change music forever. One that would be recognize", "link": "https://www.instagram.com/reel/Dd917AaJNc-/", "views": 7130, "likes": 317, "comments": 7, "shares": 93, "saves": 32, "engagements": 449}, {"platform": "Instagram", "date": "2026-08-30", "type": "reel", "title": "May every person, once in their life, experience someone loving them Mexicanly. ✍️❤️‍🔥", "link": "https://www.instagram.com/reel/DcpPo7BRJ1m/", "views": 6055, "likes": 290, "comments": 10, "shares": 47, "saves": 28, "engagements": 375}, {"platform": "Instagram", "date": "2026-09-18", "type": "reel", "title": "How did Beyoncé discover Selinas music?", "link": "https://www.instagram.com/reel/DdcehUcRY_T/", "views": 5978, "likes": 246, "comments": 12, "shares": 15, "saves": 37, "engagements": 310}], "views_30": 40939, "posts_30": 29}};
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = n => n == null ? '–' : Math.round(n).toLocaleString('en-US');
+const compact = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K' : fmt(n);
+const monthName = m => new Date(m + '-15').toLocaleDateString('en-US', { month: 'short' });
+const monthLong = m => new Date(m + '-15').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+const dateStr = d => new Date(d + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const el = (tag, attrs = {}, parent) => {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (parent) parent.appendChild(n);
+  return n;
+};
+function niceTicks(v) { // round step (1/2/2.5/5 × 10^n) giving 3-5 gridlines
+  const raw = (v || 1) / 4, p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * p).find(s => s >= raw);
+  const n = Math.max(1, Math.ceil(v / step));
+  return { max: step * n, n };
+}
+// rect with 4px rounded top, square bottom
+function colPath(x, y, w, h, r = 4) {
+  r = Math.min(r, h, w / 2);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+function barPath(x, y, w, h, r = 4) { // horizontal, rounded right end
+  r = Math.min(r, w, h / 2);
+  return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
+}
+
+// ---------- tooltip ----------
+const tip = document.getElementById('tip');
+function showTip(e, title, rows) {
+  tip.innerHTML = `<div class="t">${esc(title)}</div>` + rows.map(([k, v, c]) =>
+    `<div class="row"><span>${c ? `<i class="key" style="background:${c}"></i>` : ''}${esc(k)}</span><span>${esc(v)}</span></div>`).join('');
+  tip.style.opacity = 1;
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+}
+const hideTip = () => { tip.style.opacity = 0; };
+
+// ---------- header + tiles ----------
+document.getElementById('asof').textContent =
+  `Updated ${dateStr(D.updated)} · Podcast data through ${dateStr(D.omny_end)}` + (D.social ? ` · Social as of ${dateStr(D.social.end)}` : '') + ' · YouTube coming soon';
+
+function pct(a, b) { return b ? (a - b) / b * 100 : null; }
+function deltaHtml(p, label) {
+  if (p == null) return '';
+  const cls = p >= 0 ? 'up' : 'down', arrow = p >= 0 ? '▲' : '▼';
+  return `<div class="delta"><b class="${cls}">${arrow} ${Math.abs(p).toFixed(0)}%</b> ${label}</div>`;
+}
+function sparkline(values, color) {
+  const w = 200, h = 36, svg = el('svg', { viewBox: `0 0 ${w} ${h}`, width: '100%', height: h, 'aria-hidden': 'true', preserveAspectRatio: 'none' });
+  const max = Math.max(...values) || 1, step = w / (values.length - 1);
+  const pts = values.map((v, i) => [i * step, h - 4 - (v / max) * (h - 8)]);
+  el('path', { d: `M0,${h}L` + pts.map(p => p.join(',')).join('L') + `L${w},${h}Z`, fill: 'var(--wash)' }, svg);
+  el('path', { d: 'M' + pts.map(p => p.join(',')).join('L'), fill: 'none', stroke: color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke' }, svg);
+  return svg;
+}
+function tile(label, value, deltas, note, spark) {
+  const c = document.createElement('div');
+  c.className = 'card tile';
+  c.innerHTML = `<div class="label">${label}</div><div class="value${value.length > 12 ? ' small' : ''}">${value}</div>${deltas}${note ? `<div class="note">${note}</div>` : ''}`;
+  if (spark) c.appendChild(spark);
+  document.getElementById('tiles').appendChild(c);
+}
+{
+  const p = D.podcast;
+  tile('Podcast downloads, last 30 days', compact(p.value),
+    deltaHtml(pct(p.value, p.prev), 'vs. previous 30 days'),
+    'Both Omny feeds. Line: weekly downloads, last 6 months.', sparkline(p.weekly, 'var(--s1)'));
+  if (D.uniq_30) tile('Podcast unique listeners, last 30 days', compact(D.uniq_30.listeners),
+    D.uniq_30.per ? `<div class="delta"><b>${D.uniq_30.per.toFixed(1)}</b> downloads per listener</div>` : '',
+    'Estimated by Omny: someone who downloads several episodes counts once.');
+  if (D.social) tile('Social views, last 30 days', compact(D.social.views_30), '',
+    `${D.social.posts_30} Muy Excited posts on Instagram and Facebook published in the last 30 days, views so far. ${D.social.platforms.map(s => `${s.platform} ${compact(s.views_30)}`).join(' · ')}.`);
+  tile('New podcast episodes, last 30 days', String(D.episodes_30d), '', 'New episodes in the podcast feed.');
+  const best = D.top_episodes[0];
+  if (best) tile('Top episode', esc(best.title),
+    `<div class="delta"><b>${best.score}</b> score · ${compact(best.downloads)} downloads in 30 days</div>`,
+    `${(best.score / 100).toFixed(1)}× a typical episode · ${dateStr(best.date)}`);
+}
+
+// ---------- Muy Excited on social ----------
+if (D.social) {
+  document.getElementById('socSection').hidden = false;
+  const S = D.social, box = document.getElementById('socTiles');
+  const kv = (k, v) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`;
+  for (const s of S.platforms) {
+    const c = document.createElement('div');
+    c.className = 'card tile';
+    c.innerHTML = `<div class="label">${s.platform}: views of Muy Excited posts, last 30 days</div><div class="value">${compact(s.views_30)}</div>
+      <div class="delta">${s.posts_30} posts published ${dateStr(S.start)} – ${dateStr(S.end)}</div><hr>
+      ${kv('Engagements on those posts', fmt(s.engagements_30))}
+      ${kv('All Muy Excited posts so far', `${fmt(s.posts_all)} posts · ${compact(s.views_all)} views`)}
+      ${kv(`Futuro Media ${s.platform} followers`, fmt(s.followers))}
+      <div class="note">Followers are for the shared Futuro Media account (all Futuro shows), counted ${dateStr(s.followers_date)}. ${s.platform === 'Instagram' ? 'Views count every time a reel or post was shown.' : 'Facebook engagements = reactions and shares.'}</div>`;
+    box.appendChild(c);
+  }
+  const maxV = Math.max(...S.top_posts.map(p => p.views), 1);
+  document.getElementById('posts').innerHTML = S.top_posts.length ? `<table><thead><tr><th>Post</th><th style="min-width:160px">Views</th><th class="num">Engagements</th></tr></thead><tbody>${
+    S.top_posts.map(p => `<tr><td><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(p.title || '(no caption)')}</a><div class="meta">${dateStr(p.date)} · ${p.platform} ${esc(p.type)}${p.shares ? ` · ${fmt(p.shares)} shares` : ''}</div></td><td><div class="bar"><span class="track"><span class="fill" style="width:${p.views / maxV * 100}%;background:${p.platform === 'Instagram' ? 'var(--s1)' : 'var(--s2)'}"></span></span><b>${compact(p.views)}</b></div></td><td class="num">${fmt(p.engagements)}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="note">No Muy Excited posts in the last 6 months.</p>';
+  table('socTable', ['Month posted', 'Instagram views', 'Facebook views', 'Total'],
+    S.months.map(m => [monthLong(m.month) + (m.partial ? ' (so far)' : ''), fmt(m.instagram), fmt(m.facebook), fmt(m.instagram + m.facebook)]));
+}
+
+// ---------- stacked column chart ----------
+function columns(host, data, series, opts = {}) {
+  const box = document.getElementById(host);
+  box.innerHTML = '';
+  const W = Math.max(300, box.clientWidth), H = opts.height || 260, m = { t: 22, r: 8, b: 26, l: 44 };
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, height: H, role: 'img', 'aria-label': opts.label || '' }, box);
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const totals = data.map(d => series.reduce((s, k) => s + d[k.key], 0));
+  const { max, n } = niceTicks(Math.max(...totals));
+  for (let i = 0; i <= n; i++) {
+    const v = max * i / n, y = m.t + ih - ih * i / n;
+    el('line', { x1: m.l, x2: W - m.r, y1: y, y2: y, stroke: i ? 'var(--grid)' : 'var(--axis)', 'stroke-width': 1 }, svg);
+    el('text', { x: m.l - 8, y: y + 4, 'text-anchor': 'end' }, svg).textContent = compact(v);
+  }
+  const band = iw / data.length, bw = Math.min(24, band * 0.62);
+  const labelEvery = band < 26 ? 3 : band < 36 ? 2 : 1;
+  data.forEach((d, i) => {
+    const cx = m.l + band * i + band / 2, x = cx - bw / 2;
+    let y0 = m.t + ih;
+    const segs = series.filter(s => d[s.key] > 0);
+    segs.forEach((s, j) => {
+      const h = d[s.key] / max * ih, top = j === segs.length - 1;
+      const gap = j > 0 ? 2 : 0;
+      const hh = Math.max(0, h - gap);
+      el('path', { d: top ? colPath(x, y0 - h, bw, hh) : `M${x},${y0 - gap}V${y0 - h}H${x + bw}V${y0 - gap}Z`,
+        fill: s.color, opacity: d.partial ? 0.45 : 1 }, svg);
+      y0 -= h;
+    });
+    if (i % labelEvery === 0 || i === data.length - 1) {
+      const t = el('text', { x: cx, y: H - 8, 'text-anchor': 'middle' }, svg);
+      t.textContent = monthName(d.month) + (d.month.endsWith('-01') || i === 0 ? ` ’${d.month.slice(2, 4)}` : '');
+    }
+    const hit = el('rect', { class: 'hit', x: m.l + band * i, y: m.t, width: band, height: ih }, svg);
+    const show = e => showTip(e, monthLong(d.month) + (d.partial ? ' (partial month)' : ''),
+      [...series.map(s => [s.name, fmt(d[s.key]), s.color]).reverse(), ['Total', fmt(totals[i])]]);
+    hit.addEventListener('pointermove', show); hit.addEventListener('pointerleave', hideTip);
+  });
+  (opts.annotations || []).forEach(a => {
+    const i = data.findIndex(d => d.month === a.month);
+    if (i < 0) return;
+    const cx = m.l + band * i + band / 2, y = m.t + ih - totals[i] / max * ih - 8;
+    const t = el('text', { x: cx, y, 'text-anchor': a.anchor || 'middle', class: 'ink' }, svg);
+    t.textContent = a.text;
+  });
+}
+function table(host, headers, rows) {
+  document.getElementById(host).innerHTML = `<table><thead><tr>${headers.map((h, i) => `<th class="${i ? 'num' : ''}">${h}</th>`).join('')}</tr></thead><tbody>${
+    rows.map(r => `<tr>${r.map((v, i) => `<td class="${i ? 'num' : ''}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+
+// ---------- single-series line chart ----------
+function line(host, data, key, opts = {}) {
+  const box = document.getElementById(host);
+  box.innerHTML = '';
+  const W = Math.max(260, box.clientWidth), H = opts.height || 260, m = { t: 22, r: 16, b: 26, l: 36 };
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, height: H, role: 'img', 'aria-label': opts.label || '' }, box);
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, vals = data.map(d => d[key]);
+  const { max, n } = niceTicks(Math.max(...vals));
+  for (let i = 0; i <= n; i++) {
+    const y = m.t + ih - ih * i / n;
+    el('line', { x1: m.l, x2: W - m.r, y1: y, y2: y, stroke: i ? 'var(--grid)' : 'var(--axis)', 'stroke-width': 1 }, svg);
+    el('text', { x: m.l - 8, y: y + 4, 'text-anchor': 'end' }, svg).textContent = (max * i / n).toFixed(max < 5 ? 1 : 0);
+  }
+  const step = iw / Math.max(1, data.length - 1);
+  const pts = data.map((d, i) => [m.l + i * step, m.t + ih - d[key] / max * ih]);
+  el('path', { d: 'M' + pts.map(p => p.join(',')).join('L'), fill: 'none', stroke: 'var(--s1)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+  const lastI = pts.length - 1;
+  el('circle', { cx: pts[lastI][0], cy: pts[lastI][1], r: 4, fill: 'var(--s1)', stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
+  el('text', { x: pts[lastI][0] - 6, y: pts[lastI][1] - 10, 'text-anchor': 'end', class: 'lbl' }, svg).textContent = vals[lastI].toFixed(1);
+  const every = step < 26 ? 3 : step < 36 ? 2 : 1;
+  data.forEach((d, i) => {
+    if (i % every === 0 || i === lastI) el('text', { x: pts[i][0], y: H - 8, 'text-anchor': 'middle' }, svg).textContent =
+      monthName(d.month) + (d.month.endsWith('-01') || i === 0 ? ` ’${d.month.slice(2, 4)}` : '');
+    const hit = el('rect', { class: 'hit', x: pts[i][0] - step / 2, y: m.t, width: step, height: ih }, svg);
+    hit.addEventListener('pointermove', e => showTip(e, monthLong(d.month) + (d.complete ? '' : ' (partial month)'),
+      [['Downloads per listener', d[key].toFixed(2)], ['Unique listeners', fmt(d.listeners)], ['Downloads', fmt(d.downloads)]]));
+    hit.addEventListener('pointerleave', hideTip);
+  });
+}
+
+// ---------- horizontal bars ----------
+function hbars(host, data, opts) {
+  const box = document.getElementById(host);
+  box.innerHTML = '';
+  const W = Math.max(280, box.clientWidth), row = 34, labelW = Math.min(opts.labelW || 150, W * 0.42);
+  const H = data.length * row + (opts.axis ? 22 : 4);
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, height: H, role: 'img', 'aria-label': opts.label || '' }, box);
+  const x0 = labelW + 8, valW = 64, iw = W - x0 - valW;
+  const max = opts.max || Math.max(...data.map(d => d.value));
+  data.forEach((d, i) => {
+    const y = i * row + 6, bh = 18;
+    el('text', { x: labelW, y: y + 13, 'text-anchor': 'end', class: 'ink' }, svg).textContent = d.label;
+    const w = Math.max(2, d.value / max * iw);
+    el('path', { d: barPath(x0, y, w, bh), fill: 'var(--s1)' }, svg);
+    el('text', { x: x0 + w + 6, y: y + 13, class: 'lbl' }, svg).textContent = d.text;
+    const hit = el('rect', { class: 'hit', x: 0, y: y - 6, width: W, height: row }, svg);
+    hit.addEventListener('pointermove', e => showTip(e, d.label, d.tip));
+    hit.addEventListener('pointerleave', hideTip);
+  });
+  if (opts.ref != null) {
+    const x = x0 + opts.ref / max * iw;
+    el('line', { x1: x, x2: x, y1: 0, y2: data.length * row + 2, stroke: 'var(--ref)', 'stroke-width': 1 }, svg);
+    el('text', { x, y: H - 4, 'text-anchor': 'middle' }, svg).textContent = `${opts.ref} = typical`;
+  }
+}
+
+// ---------- topic chart: difference from a typical episode (100) ----------
+function diverging(host, topics) {
+  const box = document.getElementById(host);
+  box.innerHTML = '';
+  const W = Math.max(300, box.clientWidth), row = 34, labelW = Math.min(210, W * 0.42);
+  const H = topics.length * row + 26;
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, height: H, role: 'img', 'aria-label': 'Median episode score by topic compared with 100' }, box);
+  const x0 = labelW + 44, iw = W - x0 - 44;  // room for value labels on both sides
+  const span = Math.max(10, ...topics.map(t => Math.abs(t.median - 100)));
+  const mid = x0 + iw / 2, sc = (iw / 2) / span;
+  topics.forEach((t, i) => {
+    const y = i * row + 6, bh = 18, d = t.median - 100;
+    el('text', { x: labelW, y: y + 13, 'text-anchor': 'end', class: 'ink' }, svg).textContent = t.topic;
+    const w = Math.max(2, Math.abs(d) * sc);
+    const path = d >= 0 ? barPath(mid, y, w, bh) : `M${mid},${y}H${mid - w + 4}Q${mid - w},${y} ${mid - w},${y + 4}V${y + bh - 4}Q${mid - w},${y + bh} ${mid - w + 4},${y + bh}H${mid}Z`;
+    el('path', { d: path, fill: d >= 0 ? 'var(--s1)' : 'var(--neg)' }, svg);
+    const lab = el('text', { x: d >= 0 ? mid + w + 6 : mid - w - 6, y: y + 13, 'text-anchor': d >= 0 ? 'start' : 'end', class: 'lbl' }, svg);
+    lab.textContent = d === 0 ? '0' : (d > 0 ? '+' : '−') + Math.abs(d);
+    const hit = el('rect', { class: 'hit', x: 0, y: y - 6, width: W, height: row }, svg);
+    hit.addEventListener('pointermove', e => showTip(e, t.topic, [['Median score', t.median], ['Episodes scored', t.n]]));
+    hit.addEventListener('pointerleave', hideTip);
+  });
+  el('line', { x1: mid, x2: mid, y1: 0, y2: topics.length * row + 2, stroke: 'var(--ref)', 'stroke-width': 1 }, svg);
+  el('text', { x: mid, y: H - 4, 'text-anchor': 'middle' }, svg).textContent = '100 = typical episode';
+}
+
+// ---------- draw everything ----------
+let includePaid = false;
+function draw() {
+  columns('podcastChart', D.months, [{ key: 'downloads', name: 'Downloads', color: 'var(--s1)' }], {
+    label: 'Monthly podcast downloads',
+    annotations: [{ month: '2026-04', text: 'Trailer', anchor: 'start' }, { month: '2026-07', text: 'Launch' }] });
+  if (D.social) columns('socChart', D.social.months, [
+    { key: 'instagram', name: 'Instagram', color: 'var(--s1)' },
+    { key: 'facebook', name: 'Facebook', color: 'var(--s2)' }], { label: 'Views of Muy Excited posts by month posted', height: 240 });
+
+  if (D.uniq_months && D.uniq_months.length) {
+    document.getElementById('uniqSection').hidden = false;
+    const um = D.uniq_months.map(m => ({ ...m, partial: !m.complete }));
+    columns('uniqChart', um, [{ key: 'listeners', name: 'Unique listeners', color: 'var(--s1)' }], { label: 'Estimated unique podcast listeners per month' });
+    line('perChart', um.filter(m => m.complete && m.per), 'per', { label: 'Downloads per listener by month' });
+  }
+  const lastFull = D.apps.reduce((s, a) => s + a.downloads, 0);
+  document.getElementById('appsTitle').textContent = `Where people listened, ${monthLong(D.apps_month)}`;
+  hbars('appsChart', D.apps.map(a => ({ label: a.app, value: a.downloads,
+    text: `${Math.round(a.downloads / lastFull * 100)}%`, tip: [['Downloads', fmt(a.downloads)], ['Share', `${(a.downloads / lastFull * 100).toFixed(1)}%`]] })),
+    { label: 'Share of downloads by app', labelW: 120 });
+
+
+  if (D.topics.length) diverging('topicChart', D.topics);
+  else document.getElementById('topicChart').innerHTML = '<p class="note">Not enough scored episodes per topic yet.</p>';
+}
+table('podcastTable', ['Month', 'Downloads'],
+  D.months.map(m => [monthLong(m.month) + (m.partial ? ' (partial)' : ''), fmt(m.downloads)]));
+if (D.uniq_months && D.uniq_months.length) table('uniqTable', ['Month', 'Unique listeners', 'Downloads', 'Downloads per listener'],
+  D.uniq_months.map(m => [monthLong(m.month) + (m.complete ? '' : ' (partial)'), fmt(m.listeners), fmt(m.downloads), m.per ? m.per.toFixed(2) : '–']));
+
+
+document.querySelectorAll('[data-paid]').forEach(b => b.addEventListener('click', () => {
+  includePaid = b.dataset.paid === '1';
+  document.querySelectorAll('[data-paid]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  draw();
+}));
+
+// ---------- podcast + YouTube per episode ----------
+const cState = { win: 'all', sort: 'reach', all: false, measure: 'reach', q: '' };
+const plain = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();  // so "Ramirez" finds "Ramírez"
+document.getElementById('epTitles').innerHTML = [...new Set(D.combined.map(c => c.title))].sort()
+  .map(t => `<option value="${esc(t)}"></option>`).join('');
+const hasUniq = D.combined.some(c => c.u && Object.keys(c.u).length);
+if (hasUniq) document.getElementById('measureRow').hidden = false;
+function drawCombined() {
+  const uniq = cState.measure === 'unique';
+  if (uniq && !['7', '30'].includes(cState.win)) cState.win = '30';  // Omny estimates unique listeners for up to 35 days
+  document.querySelectorAll('#winToggle button').forEach(b => {
+    b.disabled = uniq && !['7', '30'].includes(b.dataset.win);
+    b.setAttribute('aria-pressed', String(b.dataset.win === cState.win));
+  });
+  document.getElementById('keyPodcast').textContent = uniq ? 'Podcast unique listeners' : 'Podcast downloads';
+  if (!D.youtube) document.querySelector('#measureToggle [data-measure="reach"]').textContent = 'Downloads';
+  document.getElementById('keyYouTube').hidden = uniq || !D.youtube;
+  document.getElementById('keyPaid').hidden = uniq || !D.youtube;
+  const { win, sort } = cState;
+  const items = (uniq
+    ? D.combined.filter(c => c.u && c.u[win] != null).map(c => ({ ...c, dl: c.u[win], yt: 0, paid: 0, dlAll: c[win] ? c[win][0] : null, tot: c.u[win] }))
+    : D.combined.filter(c => c[win] || c['p' + win]).map(c => {
+        if (c[win]) { const [dl, yt, paid = 0] = c[win]; return { ...c, dl, yt, paid, tot: (dl || 0) + yt + paid }; }
+        const p = c['p' + win];  // too young for this window: projected
+        return { ...c, p, dl: p.so_far, yt: 0, paid: 0, tot: p.proj };
+      }));
+  const nProj = items.filter(c => c.p).length;
+  const missingDl = items.length && items.every(c => c.dl == null);
+  items.sort(sort === 'recent' ? (a, b) => b.date.localeCompare(a.date) : (a, b) => b.tot - a.tot);
+  const words = plain(cState.q).split(/\s+/).filter(Boolean);
+  const found = words.length ? items.filter(c => words.every(w => plain(c.title).includes(w))) : null;
+  const shown = found || (cState.all ? items : items.slice(0, 12));
+  const max = Math.max(...items.map(c => c.tot), 1);  // same scale whatever the order, so bars stay comparable
+  const tots = items.filter(c => !c.p).map(c => c.tot).sort((a, b) => a - b);  // typical = finished episodes only
+  const median = tots.length ? tots[Math.floor(tots.length / 2)] : 0;
+  const label = win === 'all' ? 'all time' : `in the first ${win} days`;
+  document.getElementById('winNote').textContent = uniq
+    ? `Estimated unique podcast listeners in each episode's first ${win} days (${items.length} episodes). YouTube has no per-video unique viewers, so this is podcast only. The thin line marks a typical episode (median, ${compact(median)}).`
+    : (win === 'all'
+    ? 'All time: episodes published earlier have had more time to build up downloads.'
+    : `${items.length - nProj} episodes have finished their first ${win} days.` + (nProj ? ` ${nProj} newer episodes show a projection: the lighter part of the bar is what they are expected to add by day ${win}, based on how recent episodes built up.` : '') + (missingDl ? ' Podcast downloads for this view are awaiting the Omny export, so only YouTube is shown.' : ''))
+    + ` The thin line marks a typical episode (median, ${compact(median)}).`;
+  const box = document.getElementById('combined');
+  box.innerHTML = shown.map((c, i) => {
+    const ytTxt = uniq ? (c.dlAll != null ? `${compact(c.dlAll)} downloads` : '')
+      : [c.yt ? `${compact(c.yt)} on YouTube` : D.youtube ? 'no full video on YouTube' : '', c.paid ? `${compact(c.paid)} paid YouTube${c.paid_shorts ? ' (incl. Short)' : ''}` : ''].filter(Boolean).join(' · ');
+    const dlTxt = uniq ? `${compact(c.dl)} unique listeners` : c.dl == null ? 'podcast: awaiting Omny export' : `${compact(c.dl)} podcast`;
+    if (c.p) {
+      const cls = c.p.label.startsWith('Ahead') ? 'ahead' : c.p.label.startsWith('Behind') ? 'behind' : 'on';
+      const icon = cls === 'ahead' ? '▲' : cls === 'behind' ? '▼' : '●';
+      return `<div class="crow" data-i="${i}"><div class="head"><a href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.title)}</a><b>~${compact(c.p.proj)}</b></div>
+      <div class="meta">${dateStr(c.date)} · day ${c.p.age} · <span class="pace ${cls}">${icon} ${c.p.label}</span> (${c.p.pace}% of a typical episode at day ${c.p.age}) · ${compact(c.p.so_far)} so far, on track for ${compact(c.p.lo)}–${compact(c.p.hi)} by day ${win}</div>
+      <div class="track2"><div class="stack" style="width:${c.p.proj / max * 100}%"><span style="flex:${c.p.so_far};background:var(--s1)"></span><span class="proj" style="flex:${Math.max(0, c.p.proj - c.p.so_far)}"></span></div><span class="ref" style="left:${median / max * 100}%"></span></div></div>`;
+    }
+    return `<div class="crow" data-i="${i}"><div class="head"><a href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.title)}</a><b>${compact(c.tot)}</b></div>
+      <div class="meta">${[dateStr(c.date), dlTxt, ytTxt].filter(Boolean).join(' · ')}</div>
+      <div class="track2"><div class="stack" style="width:${c.tot / max * 100}%">${c.dl ? `<span style="flex:${c.dl};background:var(--s1)"></span>` : ''}${c.yt ? `<span style="flex:${c.yt};background:var(--s3)"></span>` : ''}${c.paid ? `<span style="flex:${c.paid};background:var(--s2)"></span>` : ''}</div><span class="ref" style="left:${median / max * 100}%"></span></div></div>`;
+  }).join('') || (found ? `<p class="note">No episode matches "${esc(cState.q)}" in this view.${win !== 'all' ? ' Newer episodes may not have finished this many days yet: try All time.' : ''}</p>`
+    : '<p class="note">No episodes are old enough for this view yet.</p>');
+  box.querySelectorAll('.crow').forEach(r => {
+    const c = shown[r.dataset.i];
+    r.addEventListener('pointermove', e => showTip(e, c.title, c.p
+      ? [['Downloads so far', fmt(c.p.so_far), 'var(--s1)'], [`Projected by day ${win}`, `${fmt(c.p.proj)} (${fmt(c.p.lo)}–${fmt(c.p.hi)})`],
+         ['Pace vs typical at this age', `${c.p.pace}%`], ['Typical episode', fmt(median)]]
+      : uniq
+      ? [[`Unique listeners ${label}`, fmt(c.dl), 'var(--s1)'], [`Downloads ${label}`, fmt(c.dlAll)], ['Typical episode', fmt(median)]]
+      : [['Podcast downloads', c.dl == null ? 'awaiting export' : fmt(c.dl), 'var(--s1)'],
+         ...(D.youtube ? [['YouTube full-video views', fmt(c.yt), 'var(--s3)']] : []), ...(c.paid ? [['YouTube paid views (ads)', fmt(c.paid), 'var(--s2)']] : []),
+         [`Total ${label}`, fmt(c.tot)], ['Typical episode', fmt(median)]]));
+    r.addEventListener('pointerleave', hideTip);
+  });
+  const more = document.getElementById('moreBtn');
+  more.hidden = items.length <= 12 || !!found;
+  more.textContent = cState.all ? 'Show top 12 only' : `Show all ${items.length} episodes`;
+}
+drawCombined();
+for (const [group, key] of [['#winToggle', 'win'], ['#sortToggle', 'sort'], ['#measureToggle', 'measure']]) {
+  document.querySelectorAll(group + ' button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll(group + ' button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    cState[key] = b.dataset[key];
+    drawCombined();
+  }));
+}
+document.getElementById('moreBtn').addEventListener('click', () => { cState.all = !cState.all; drawCombined(); });
+document.getElementById('epSearch').addEventListener('input', e => { cState.q = e.target.value; drawCombined(); });
+
+// ---------- tables of top items ----------
+function scoreBar(score, max) {
+  if (score == null) return '<span class="meta">not enough yet</span>';
+  const w = Math.min(100, score / max * 100), ref = 100 / max * 100;
+  return `<div class="bar"><span class="track"><span class="fill" style="width:${w}%"></span><span class="ref" style="left:${ref}%"></span></span><b>${score}</b></div>`;
+}
+{
+  const maxS = 200;
+  document.getElementById('episodes').innerHTML = D.top_episodes.length ? `<table><thead><tr><th>Episode</th><th class="num">First 30 days</th><th class="num">All time</th><th style="min-width:180px">Score (line = 100 = typical)</th></tr></thead><tbody>${
+    D.top_episodes.map(e => `<tr><td><a href="${esc(e.link)}" target="_blank" rel="noopener">${esc(e.title)}</a><div class="meta">${dateStr(e.date)}${e.topic ? ' · ' + esc(e.topic) : ''}</div></td><td class="num">${fmt(e.downloads)}</td><td class="num">${fmt(e.total)}</td><td>${scoreBar(e.score, maxS)}</td></tr>`).join('')}</tbody></table>`
+    : '<p class="note">Episodes get a score once they are 30 days old.</p>';
+}
+
+draw();
+let rt;
+addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(draw, 120); });
+</script>
+</body>
+</html>
